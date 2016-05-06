@@ -1,0 +1,606 @@
+<!doctype html>
+<head>
+	<title>Obesity and Overweight Prevalence among Children in NYC Public Schools</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="css.css" />
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" rel="stylesheet"><!--this is new-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css><!--this is new-->
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <script src="http://getbootstrap.com/assets/js/ie-emulation-modes-warning.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.js"></script>
+    <!--[if lt IE 9]>
+      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.ie.css" />
+      <![endif]-->
+</head>
+<body>	<div id="map"></div>
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="CT_obesity.js"></script>
+    <script src="CD_obesity.js"></script>
+	<script>
+
+var 	osmbw = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v8/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYXZpbnNvbjEyNzUiLCJhIjoiOG9TU0lsRSJ9.z7AydH7PyO_DKlVi2AQkBw', {
+					attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy <a href="https://www.mapbox.com/">Mapbox</a>'
+				}
+				);
+
+	
+    
+    
+var map = L.map('map', {
+	center: [40.7191156, -73.9818443],
+	zoom: 11,
+	layers: [osmbw]
+	});
+
+var baseMaps = {
+	"Open Street Map": osmbw
+};
+		var info = L.control();
+
+		info.onAdd = function (map) {
+			this._div = L.DomUtil.create('div', 'info');
+			this.update();
+			return this._div;
+		};
+
+		info.update = function (props) {
+			this._div.innerHTML = '<h1>Overweight & Obesity Prevalence in NYC Public Schools</h1>' +  (props ?
+				'<b>Census Tract: ' + props.ct2010 + '<b> Borough: </b>' + props.boro_name + '<b> Community District: </b>' + props.CD + '</b><br><br><b>Percent Overweight 2008-2009: </b>' + props.valOW0809 + '%<br><b>Percent Obese 2008-2009:</b> ' + props.valOB0809 + '%' + '<br><br><b>Percent Overweight 2010-2011: </b>  ' + props.valOW1011 + '%' + '<br><b>Percent Obese 2010-2011: </b>' + props.valOB1011 + '% <br><br><b>Percent Overweight 2012-2013:</b> ' + props.valOW1213 + '%' + '<br><b>Percent Obese 2012-2013:</b>  ' + props.valOB1213 + '%'
+				: 'Hover over a Census Tract for more information.');
+		};
+
+		info.addTo(map);
+
+		var info2 = L.control();
+
+		info2.onAdd = function (map) {
+					this._div = L.DomUtil.create('div', 'info');
+					this.update();
+					return this._div;
+				};
+
+		info2.update = function (props) {
+					this._div.innerHTML = '<h4>Community District</h4>' +  (props ?
+					'<b>' + props.BoroCD + '</b>' 
+					: 'Hover over a district.');
+				};
+
+		info2.addTo(map);
+				
+				
+		function CD_style(feature) {
+					return {
+						weight: 2,
+						color: 'black',
+						fillOpacity: 0
+					};
+				}
+
+		function getColorOB(P) {
+			return P > 22  ? '#bd0026' :
+				   P > 20  ? '#f03b20' :
+				   P > 18   ? '#fd8d3c' :
+				   P > 14  ? '#feb24c' :
+			       P > 0   ? '#fed976' :
+				               '#ffffb2';
+		}
+
+		function getColorOW(P) {
+			return P > 42  ? '#bd0026' :
+				   P > 40  ? '#e6550d' :
+				   P > 38   ? '#fd8d3c' :
+				   P > 34  ? '#fdae6b' :
+			       P > 28   ? '#fdd0a2' :
+				   P > 0   ? '#ffffb2' :
+				               '#ffffb2';
+		}
+
+
+
+		function style(feature) {
+			return {
+				weight: 1,
+				opacity: 1,
+				color: 'white',
+				dashArray: '3',
+				fillOpacity: 0.6,
+				fillColor: getColorOW(feature.properties.valOW0809)
+			};
+		}
+		
+		function style2(feature) {
+			return {
+				weight: 1,
+				opacity: 1,
+				color: 'white',
+				dashArray: '3',
+				fillOpacity: 0.6,
+				fillColor: getColorOB(feature.properties.valOB0809)
+			};
+		}
+		
+		function style3(feature) {
+			return {
+				weight: 1,
+				opacity: 1,
+				color: 'white',
+				dashArray: '3',
+				fillOpacity: 0.6,
+				fillColor: getColorOW(feature.properties.valOW1011)
+			};
+		}
+		
+		function style4(feature) {
+			return {
+				weight: 1,
+				opacity: 1,
+				color: 'white',
+				dashArray: '3',
+				fillOpacity: 0.6,
+				fillColor: getColorOB(feature.properties.valOB1011)
+			};
+		}
+		
+		function style5(feature) {
+			return {
+				weight: 1,
+				opacity: 1,
+				color: 'white',
+				dashArray: '3',
+				fillOpacity: 0.6,
+				fillColor: getColorOW(feature.properties.valOW1213)
+			};
+		}
+		
+		function style6(feature) {
+			return {
+				weight: 1,
+				opacity: 1,
+				color: 'white',
+				dashArray: '3',
+				fillOpacity: 0.6,
+				fillColor: getColorOB(feature.properties.valOB1213)
+			};
+		}		
+		
+        function highlightFeature(e) {
+			var layer = e.target;
+
+			layer.setStyle({
+				weight: 5,
+				color: '#FFF',
+				dashArray: '',
+				fillOpacity: 0.7
+			});
+			info.update(layer.feature.properties);
+		};
+
+		function resetHighlight(e) {
+			geojson.resetStyle(e.target);
+		};
+
+		function zoomToFeature(e) {
+			map.fitBounds(e.target.getBounds());
+		};
+
+		var onEachFeature_LMA = function onEachFeature(feature, layer) {
+				layer.on({
+				mouseover: highlightFeature,
+				mouseout: resetHighlight,
+				click: zoomToFeature
+			});
+
+        var div = $('<div class="popupGraph" style="width: 325px; height: 275px;"><h2>Overweight and Obesity Prevalence</h2><svg/></div>')[0];
+        
+			var popup = L.popup().setContent(div);
+			layer.bindPopup(popup);
+            
+            var values = feature.properties;
+            var data = [
+                {name:"Obese: 2008-2009",value:values["valOB0809"],color:"red"},
+                {name:"Overweight: 2008-2009",value:values["valOW0809"],color:"blue"},
+                {name:"Obese: 2010-2011",value:values["valOB1011"],color:"red"},
+                {name:"Overweight: 2010-2011",value:values["valOW1011"],color:"blue"},
+                {name:"Obese: 2012-2013",value:values["valOB1213"],color:"red"},
+                {name:"Overweight: 2012-2013",value:values["valOW1213"],color:"blue"},];
+            var margin = {top: 20, right: 20, bottom: 20, left: 20},
+                width = 325 - margin.left - margin.right,
+                height = 250 - margin.top - margin.bottom,
+                labelWidth = 0,
+                barHeight = height / data.length;
+            var legendRectSize = 18;
+            var legendSpacing = 4;
+               
+      var color = d3.scale.ordinal()
+    				.domain(["red", "blue"])
+    				.range(["red","blue"]);
+
+            var x = d3.scale.linear()
+                .domain([0, d3.max(data, function(d){return d.value;})])
+                .range([0, width]);
+ 
+            var xAxis = d3.svg.axis()
+                .scale(x)
+                .orient("bottom");
+ 
+			var svg = d3.select(div).select("svg")
+			    .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .classed("chart", true);
+            
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+                .append("text")
+   				.attr("x", 6)
+    			.attr("dy", ".71em")
+    			.style("text-anchor", "left")
+    			.text("%");
+   	      
+            var bar = svg.selectAll("g.bar")
+                .data(data)
+                .enter()
+              .append("g")
+                .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+            
+            bar.append("rect")
+                .attr("width", function(d){return x(d.value);})
+                .attr("height", barHeight - 1)
+                .style("fill", function(d) { return color(d.color); });
+            
+            bar.append("text")
+            .attr("class", "value")
+                .attr("x", function(d) { return x(d.value) - 3; })
+                .attr("y", barHeight / 2)
+                .attr("dy", ".35em")
+                .text(function(d) { return d.name +": "+ d.value+"%"; });
+                
+            bar.append("text")
+            .attr("class", "label")
+            .attr("y", barHeight / 2)
+            .attr("dy", ".35em") //vertical align middle
+            .text(function(d){
+    				return d.name;
+                    }).each(function() {
+               labelWidth = Math.ceil(Math.max(labelWidth, this.getBBox().width));
+                    });
+            
+            var legend = svg.selectAll('.legend')
+  .data(color.domain())
+  .enter()
+  .append('g')
+  .attr('class', 'legend')
+  .attr('transform', function(d, i) {
+    var height = legendRectSize + legendSpacing;
+    var offset =  height * color.domain().length / 2;
+    var horz = -2 * legendRectSize;
+    var vert = i * height - offset;
+    return 'translate(' + horz + ',' + vert + ')';
+  });
+            
+            
+		}
+
+
+
+		var geojson = L.geoJson(cttwoyear, {
+			style: style4,
+			onEachFeature: onEachFeature_LMA
+		});
+        
+        
+        var geojson2 = L.geoJson(cttwoyear, {
+			style: style,
+			onEachFeature: onEachFeature_LMA
+		});
+
+		var CD = new L.geoJson(districts, {
+					style: CD_style,
+					onEachFeature:function (feature, layer) {
+					var defaultStyle = layer.style,
+						that = this;
+						
+					layer.on('mouseover', function (e) {
+						this.setStyle({
+						weight: 5,
+						color: '#666',
+						dashArray: '',
+						fillOpacity: 0});
+					
+						info2.update(layer.feature.properties);
+					});
+					
+					layer.on('mouseout', function(e) {
+						CD.resetStyle(e.target);
+						info2.update();
+					});
+					}
+					});
+        
+        
+        
+		var OW0809 = new L.geoJson(cttwoyear, {
+			style: style,
+			onEachFeature: function (feature, layer) {
+            var defaultStyle = layer.style,
+                that = this;//NEW
+
+            layer.on('mouseover', function (e) {
+				layer.bindPopup('<b>Census Tract: ' + feature.properties.ct2010 + '<b><br>Borough: </b>' + feature.properties.boro_name + '<b><br>Community District: </b>' + feature.properties.CD + '</b><br><br><b>Percent Overweight 2008-2009: </b>' + feature.properties.valOW0809 + '%<br><b>Percent Obese 2008-2009:</b> ' + feature.properties.valOB0809 + '%' + '<br><br><b>Percent Overweight 2010-2011: </b>  ' + feature.properties.valOW1011 + '%' + '<br><b>Percent Obese 2010-2011: </b>' + feature.properties.valOB1011 + '% <br><br><b>Percent Overweight 2012-2013:</b> ' + feature.properties.valOW1213 + '%' + '<br><b>Percent Obese 2012-2013:</b>  ' + feature.properties.valOB1213 + '%');
+                this.setStyle({
+						weight: 5,
+						color: '#666',
+						dashArray: '',
+						fillOpactiy: 0.7});
+
+    		if (!L.Browser.ie && !L.Browser.opera) {
+        		layer.bringToFront();
+    		}
+	
+				info.update(layer.feature.properties);
+            });
+		
+            layer.on('mouseout', function (e) {
+                OW0809.resetStyle(e.target); //NEW
+				info.update();
+            });
+        	}
+			});
+		
+			var OW1011 = new L.geoJson(cttwoyear, {
+			style: style3,
+			onEachFeature: function (feature, layer) {
+            var defaultStyle = layer.style,
+                that = this;//NEW
+
+            layer.on('mouseover', function (e) {
+				layer.bindPopup('<b>Census Tract: ' + feature.properties.ct2010 + '<b><br>Borough: </b>' + feature.properties.boro_name + '<b><br>Community District: </b>' + feature.properties.CD + '</b><br><br><b>Percent Overweight 2008-2009: </b>' + feature.properties.valOW0809 + '%<br><b>Percent Obese 2008-2009:</b> ' + feature.properties.valOB0809 + '%' + '<br><br><b>Percent Overweight 2010-2011: </b>  ' + feature.properties.valOW1011 + '%' + '<br><b>Percent Obese 2010-2011: </b>' + feature.properties.valOB1011 + '% <br><br><b>Percent Overweight 2012-2013:</b> ' + feature.properties.valOW1213 + '%' + '<br><b>Percent Obese 2012-2013:</b>  ' + feature.properties.valOB1213 + '%');
+                this.setStyle({
+						weight: 5,
+						color: '#666',
+						dashArray: '',
+						fillOpactiy: 0.7});
+
+    		if (!L.Browser.ie && !L.Browser.opera) {
+        		layer.bringToFront();
+    		}
+	
+				info.update(layer.feature.properties);
+            });
+		
+            layer.on('mouseout', function (e) {
+                OW1011.resetStyle(e.target); //NEW
+				info.update();
+            });
+        	}
+			});	
+		
+			var OW1213 = new L.geoJson(cttwoyear, {
+			style: style5,
+			onEachFeature: function (feature, layer) {
+            var defaultStyle = layer.style,
+                that = this;//NEW
+
+            layer.on('mouseover', function (e) {
+				layer.bindPopup('<b>Census Tract: ' + feature.properties.ct2010 + '<b><br>Borough: </b>' + feature.properties.boro_name + '<b><br>Community District: </b>' + feature.properties.CD + '</b><br><br><b>Percent Overweight 2008-2009: </b>' + feature.properties.valOW0809 + '%<br><b>Percent Obese 2008-2009:</b> ' + feature.properties.valOB0809 + '%' + '<br><br><b>Percent Overweight 2010-2011: </b>  ' + feature.properties.valOW1011 + '%' + '<br><b>Percent Obese 2010-2011: </b>' + feature.properties.valOB1011 + '% <br><br><b>Percent Overweight 2012-2013:</b> ' + feature.properties.valOW1213 + '%' + '<br><b>Percent Obese 2012-2013:</b>  ' + feature.properties.valOB1213 + '%');
+                this.setStyle({
+						weight: 5,
+						color: '#666',
+						dashArray: '',
+						fillOpactiy: 0.7});
+
+    		if (!L.Browser.ie && !L.Browser.opera) {
+        		layer.bringToFront();
+    		}
+	
+				info.update(layer.feature.properties);
+            });
+		
+            layer.on('mouseout', function (e) {
+                OW1213.resetStyle(e.target); //NEW
+				info.update();
+            });
+        	}
+			});
+		
+			var OB0809 = new L.geoJson(cttwoyear, {
+			style: style2,
+			onEachFeature: function (feature, layer) {
+            var defaultStyle = layer.style,
+                that = this;//NEW
+
+            layer.on('mouseover', function (e) {
+				layer.bindPopup('<b>Census Tract: ' + feature.properties.ct2010 + '<b><br>Borough: </b>' + feature.properties.boro_name + '<b><br>Community District: </b>' + feature.properties.CD + '</b><br><br><b>Percent Overweight 2008-2009: </b>' + feature.properties.valOW0809 + '%<br><b>Percent Obese 2008-2009:</b> ' + feature.properties.valOB0809 + '%' + '<br><br><b>Percent Overweight 2010-2011: </b>  ' + feature.properties.valOW1011 + '%' + '<br><b>Percent Obese 2010-2011: </b>' + feature.properties.valOB1011 + '% <br><br><b>Percent Overweight 2012-2013:</b> ' + feature.properties.valOW1213 + '%' + '<br><b>Percent Obese 2012-2013:</b>  ' + feature.properties.valOB1213 + '%');
+                this.setStyle({
+						weight: 5,
+						color: '#666',
+						dashArray: '',
+						fillOpactiy: 0.7});
+
+    		if (!L.Browser.ie && !L.Browser.opera) {
+        		layer.bringToFront();
+    		}
+	
+				info.update(layer.feature.properties);
+            });
+		
+            layer.on('mouseout', function (e) {
+                OB0809.resetStyle(e.target); //NEW
+				info.update();
+            });
+        	}
+			}).addTo(map);
+		
+			var OB1011 = new L.geoJson(cttwoyear, {
+			style: style4,
+			onEachFeature: function (feature, layer) {
+            var defaultStyle = layer.style,
+                that = this;//NEW
+
+            layer.on('mouseover', function (e) {
+				layer.bindPopup('<b>Census Tract: ' + feature.properties.ct2010 + '<b><br>Borough: </b>' + feature.properties.boro_name + '<b><br>Community District: </b>' + feature.properties.CD + '</b><br><br><b>Percent Overweight 2008-2009: </b>' + feature.properties.valOW0809 + '%<br><b>Percent Obese 2008-2009:</b> ' + feature.properties.valOB0809 + '%' + '<br><br><b>Percent Overweight 2010-2011: </b>  ' + feature.properties.valOW1011 + '%' + '<br><b>Percent Obese 2010-2011: </b>' + feature.properties.valOB1011 + '% <br><br><b>Percent Overweight 2012-2013:</b> ' + feature.properties.valOW1213 + '%' + '<br><b>Percent Obese 2012-2013:</b>  ' + feature.properties.valOB1213 + '%');
+                this.setStyle({
+						weight: 5,
+						color: '#666',
+						dashArray: '',
+						fillOpactiy: 0.7});
+
+    		if (!L.Browser.ie && !L.Browser.opera) {
+        		layer.bringToFront();
+    		}
+	
+				info.update(layer.feature.properties);
+            });
+		
+            layer.on('mouseout', function (e) {
+                OB1011.resetStyle(e.target); //NEW
+				info.update();
+            });
+        	}
+			});
+		
+
+		
+			var OB1213 = new L.geoJson(cttwoyear, {
+			style: style6,
+			onEachFeature: function (feature, layer) {
+            var defaultStyle = layer.style,
+                that = this;//NEW
+
+            layer.on('mouseover', function (e) {
+				layer.bindPopup('<b>Census Tract: ' + feature.properties.ct2010 + '<b><br>Borough: </b>' + feature.properties.boro_name + '<b><br>Community District: </b>' + feature.properties.CD + '</b><br><br><b>Percent Overweight 2008-2009: </b>' + feature.properties.valOW0809 + '%<br><b>Percent Obese 2008-2009:</b> ' + feature.properties.valOB0809 + '%' + '<br><br><b>Percent Overweight 2010-2011: </b>  ' + feature.properties.valOW1011 + '%' + '<br><b>Percent Obese 2010-2011: </b>' + feature.properties.valOB1011 + '% <br><br><b>Percent Overweight 2012-2013:</b> ' + feature.properties.valOW1213 + '%' + '<br><b>Percent Obese 2012-2013:</b>  ' + feature.properties.valOB1213 + '%');
+                this.setStyle({
+						weight: 5,
+						color: '#666',
+						dashArray: '',
+						fillOpactiy: 0.7});
+
+    		if (!L.Browser.ie && !L.Browser.opera) {
+        		layer.bringToFront();
+    		}
+	
+				info.update(layer.feature.properties);
+            });
+		
+            layer.on('mouseout', function (e) {
+                OB1213.resetStyle(e.target); //NEW
+				info.update();
+            });
+        	}
+			});
+
+var overlay = {
+	"Community Districts": CD,
+    };
+    
+    		
+var baseMaps = {
+		"Percent Obese 2008-2009": OB0809,
+		"Percent Overweight 2008-2009": OW0809,
+		"Percent Obese 2010-2011": OB1011,
+		"Percent Overweight 2010-2011": OW1011,
+		"Percent Obese 2012-2013": OB1213,
+		"Percent Overweight 2012-2013": OW1213,
+        "Chart Test": geojson,
+        "Chart Test 2": geojson2,
+	};
+		
+
+
+
+L.control.layers(baseMaps, overlay, {collapsed: true}).addTo(map);
+
+
+var legend = L.control({position: 'bottomright'});  
+    legend.onAdd = function (map) {
+
+    var div = L.DomUtil.create('div', 'info legend'),
+        grades = [0, 14, 18, 20, 22],
+        labels = ['<strong>% Obese</strong>'],
+        from, to;
+
+    for (var i = 0; i < grades.length; i++) {
+        from = grades [i];
+        to = grades[i+1]-0;
+
+    labels.push(
+        '<i style="background:' + getColorOB(from + 1) + '"></i> ' +
+        from + (to ? '&ndash;' + to + ' %': '+ %'));
+        }
+        div.innerHTML = labels.join('<br>');
+        return div;
+
+
+        };
+
+
+var legend2 = L.control({position: 'bottomright'});  
+    legend2.onAdd = function (map) {
+
+    var div = L.DomUtil.create('div', 'info legend'),
+        grades = [0, 28, 34, 38, 40, 42],
+        labels = ['<strong>% Overweight</strong>'],
+        from, to;
+
+    for (var i = 0; i < grades.length; i++) {
+        from = grades [i];
+        to = grades[i+1]-0;
+
+    labels.push(
+        '<i style="background:' + getColorOW(from + 1) + '"></i> ' +
+        from + (to ? '&ndash;' + to + ' %': '+ %'));
+        }
+        div.innerHTML = labels.join('<br>');
+        return div;
+        };
+
+
+legend.addTo(map);		
+currentlegend = legend;
+	
+map.on('baselayerchange', function (eventLayer) {
+    if (eventLayer.name === 'Percent Overweight 2008-2009') {
+	map.removeControl(currentlegend);
+	currentlegend = legend2;
+	legend2.addTo(map);
+    } else if (eventLayer.name === 'Percent Overweight 2010-2011'){ 
+	map.removeControl(currentlegend);
+	currentlegend = legend2;
+	legend2.addTo(map);
+    } else if (eventLayer.name === 'Percent Overweight 2012-2013'){ 
+	map.removeControl(currentlegend);
+	currentlegend = legend2;
+	legend2.addTo(map);
+    } else { 
+	map.removeControl(currentlegend);
+	currentlegend = legend;
+	legend.addTo(map);
+    }
+	
+
+	
+	
+});	
+	
+	
+	
+	
+				
+</script>
+
+
+
+</body>
+</html>
