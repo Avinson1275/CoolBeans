@@ -5,9 +5,21 @@ body {
 
 #map {
 	position:absolute;
+	float:right;
 	width:100%;
 	height:100%;
 }
+
+#chart{
+	    height:20%;
+        width:20%;
+		position:fixed;
+        bottom:0;
+		float:left;
+		fill: "white";
+	
+	}
+
 .info {
 	padding: 6px 8px;
 	font: 14px/16px Arial, Helvetica, sans-serif;
@@ -70,4 +82,9 @@ h2 {
   font-size: 1rem;
   font-weight: 500;
   text-align: center;
+}
+
+TD {
+    padding: 5px;
+    vertical-align:top;
 }
